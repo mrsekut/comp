@@ -11,29 +11,17 @@ type Code = Integer
 code :: [Integer] -> Code
 code = foldr pair 0
 
-pair :: Integer -> Integer -> Code
-pair x y = sum [0..x+y] + x + 1
-
-
-
--- コードのUtils
-
--- TODO: パフォーマンス的な改善
-depair :: Code -> (Integer, Integer)
-depair 0 = (0, 0)
-depair c = head $ filter (\x -> uncurry pair x == c) candidates
-    where
-        candidates = [(x,y) | x <- [0..c], y <- [0..c]]
-
-left :: Code -> Integer
-left = fst . depair
-
-right :: Code -> Integer
-right = snd . depair
-
 decode :: Code -> [Integer]
 decode 0 = []
-decode c = left c : decode (right c)
+decode c = l : decode r
+    where (l, r) = depair c
+
+pair :: Integer -> Integer -> Code
+pair x y = sum0toN (x+y)  + x + 1
+
+left, right :: Code -> Integer
+left = fst . depair
+right = snd . depair
 
 
 -- indexは1始まり
@@ -49,3 +37,26 @@ replace xs i n = code $ take (i-1) (decode xs) ++ [n] ++ drop i (decode xs)
 
 sequence :: Integer -> Int -> Code
 sequence c n = code $ replicate n c
+
+
+
+
+-- Utils
+
+
+depair :: Code -> (Integer, Integer)
+depair 0 = (0, 0)
+depair n = (left, right)
+    where
+        ans = head $ filter ((>= n) . fst) candi
+        right = fst ans - n
+        left = snd ans - right
+
+candi :: [(Code, Integer)]
+candi = [(x, i) | (x,i) <- zip cand [0..]]
+
+cand :: [Code]
+cand = [sum0toN (k+1) | k <- [0..]]
+
+sum0toN :: Integer -> Integer
+sum0toN n = div (n * (n+1)) 2
