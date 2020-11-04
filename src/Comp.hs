@@ -1,114 +1,52 @@
-module Comp where
+module Comp (execute) where
 
+import Program (Program(..), Vars, Cmd(..))
 import qualified Data.Map as Map
-import qualified Code as P -- primitive
+import Data.Maybe (fromJust)
 
 
 -- 標準入力など
-main :: IO ()
-main = undefined
+-- main :: IO ()
+-- main = undefined
 
-type Code = Integer
-comp :: Code -> Code -> Either Integer String
+comp :: Integer -> Integer -> Integer
 comp = undefined
 
-
-type Vars = Map.Map Integer Integer
-data Program = Program Vars [Cmd]
-
-type Line = Integer
-data Cmd = Goto Line
-         | Bind Integer Integer
-         | BindV Integer Integer
-         | Inc Integer
-         | Dec Integer
-         | If Integer Integer
+-- initialize :: Program -> Vars
+-- initialize (ProgramCode _ m _) = Map.fromList (map (,0) [1..m])
 
 
-type Validation = Either -- FIXME: 後で消す
-type Result a = Validation [String] a
+execute :: Program -> Integer
+execute (Program vs cmds) = execute' cmds 1 vs
+
+
+-- FIXME: clean
+execute' :: [Cmd] -> Integer -> Vars -> Integer
+execute' [] _ _ = undefined
+execute' cmd pc vs =
+    if pc == toInteger(length cmd) -- NOTE: Startがいるので。いないなら+1
+    then fromJust $ Map.lookup 1 vs
+    else execute' cmd next nvs
+        where (next, nvs) = row (cmd !! fromInteger pc, vs) pc
 
 
 
+-- FIXME: clean
+row :: (Cmd, Vars) -> Integer -> (Integer, Vars)
+row (Goto l, vs) _     = (l, vs)
+row (Bind v n, vs) pc  = (pc+1, Map.insert v n vs)
+row (BindV a b, vs) pc = (pc+1, bind a b vs)
+row (Inc a, vs) pc     = (pc+1, Map.update inc a vs)
+row (Dec a, vs) pc     = (pc+1, Map.update dec a vs)
+row (If n l, vs) pc    = case Map.lookup n vs of
+    Just x -> if x>0 then (l, vs) else (pc+1, vs)
+    Nothing -> error "wwwww"
 
--- Parser的な
-{-
+inc :: Num a => a -> Maybe a
+inc n = Just (n+1)
 
-Code 213797904982138037454632940231947778583451643946214351540021648522868699116020532367794717279183597514183155623196270804266008911831504391186653218399859236746627965664600576149708185774554408383297605366764401745745512661359368506
- ↓
- ↓ toProgramCode
- ↓
-ProgramCode 2 2 113410085239160792121509200101
-ProgramCode 2 2 <3835,437,72,33,12>
-ProgramCode 2 2 <[6,2,3],[1,6],[5,2],[4,1],[1,1]>
- ↓
- ↓ toProgram, makeCmds
- ↓
-Program 4 [(If 2 3),(Goto 6),(Dec 2),(Inc 1),(Goto 1)]
+dec :: (Ord a, Num a) => a -> Maybe a
+dec n = if n > 0 then Just (n-1) else Just n
 
--}
-type InputCode = Integer
-type VarsCode = Integer
-type CmdsCode = Integer
-data ProgramCode = ProgramCode InputCode VarsCode CmdsCode deriving (Show)
-
-
--- FIXME: unsafe, Result
--- lengthが3であるのチェックも兼ねる
-toProgramCode :: Code -> Result ProgramCode
-toProgramCode c = case length d of
-    3 -> Right $ ProgramCode (d!!0) (d!!1) (d!!2)
-    _ -> Left ["not Program"]
-    where d = P.decode c
-
-
-toProgram :: ProgramCode -> Program
-toProgram (ProgramCode k m s) = Program (initializeVars k m) (makeCmds s)
-
-initializeVars :: InputCode -> VarsCode -> Vars
-initializeVars k m = Map.fromList ([(v,0) | v <- [0..k+m]])
-
-makeCmds :: CmdsCode -> [Cmd]
-makeCmds c = map toCmd $ P.decode c
-
-
-toCmd :: Code -> Cmd
-toCmd c = case head d of
-    1 -> checkType1 d
-    2 -> checkType2 d
-    3 -> checkType3 d
-    4 -> checkType4 d
-    5 -> checkType5 d
-    6 -> checkType6 d
-    _ -> error "invariant program type"
-    where d = P.decode c
-
-checkType1 :: [Integer] -> Cmd
-checkType1 ix = if length ix == 2
-    then Goto (ix!!1)
-    else error "type error 1"
-
-checkType2 :: [Integer] -> Cmd
-checkType2 ix = if length ix == 3
-    then Bind (ix!!1) (ix!!2)
-    else error "type error 2"
-
-checkType3 :: [Integer] -> Cmd
-checkType3 ix = if length ix == 3
-    then BindV (ix!!1) (ix!!2)
-    else error "type error 3"
-
-checkType4 :: [Integer] -> Cmd
-checkType4 ix = if length ix == 2
-    then Inc (ix!!1)
-    else error "type error 4"
-
-checkType5 :: [Integer] -> Cmd
-checkType5 ix = if length ix == 2
-    then Dec (ix!!1)
-    else error "type error 5"
-
-checkType6 :: [Integer] -> Cmd
-checkType6 ix = if length ix == 3
-    then If (ix!!1) (ix!!2)
-    else error "type error 6"
+bind :: Ord a => a -> a -> Map.Map a a -> Map.Map a a
+bind a b vs = Map.insert (fromJust $ Map.lookup b vs) a vs

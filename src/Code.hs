@@ -19,9 +19,9 @@ decode c = l : decode r
 pair :: Integer -> Integer -> Code
 pair x y = sum0toN (x+y)  + x + 1
 
-left, right :: Code -> Integer
-left = fst . depair
-right = snd . depair
+-- left, right :: Code -> Integer
+-- left = fst . depair
+-- right = snd . depair
 
 
 -- indexは1始まり
