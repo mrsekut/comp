@@ -1,43 +1,45 @@
-module Parser where
+module Parser (parseProgram, parseStmt, parseExpr, Define(..), Stmt(..), Expr(..), UniOp(..), BinOp(..)) where
 
 import Text.Parsec.Expr
     ( buildExpressionParser, Assoc(AssocLeft), Operator(..) )
 import Text.ParserCombinators.Parsec
-    (alphaNum, char, lower, (<?>), (<|>), try, Parser ,many, parse, ParseError)
+    (alphaNum, char, lower, (<?>), (<|>), try, Parser ,many, parse, ParseError, sepBy)
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language
     ( GenLanguageDef(..), emptyDef )
 
 
 data Define = Fn String [Expr] Stmt
-            | Call
-            deriving Show
+            deriving (Show ,Eq)
 
 -- TODO: loop
 data Stmt = Nop
-          | String := Expr
+          | Assign String Expr
           | If Expr Stmt Stmt
           | While Expr Stmt
           | Return Expr
           | Seq [Stmt]
-          deriving Show
+          deriving (Show, Eq)
+
 -- TODO: 型宣言 `int a,b,c,d,..;`
--- TODO: call
 data Expr = Nat Integer
           | Var String
           | Con Bool
           | Uno UniOp Expr
           | Bio BinOp Expr Expr
-          deriving Show
+          | Call String [Expr]
+          deriving (Show, Eq)
+
 data UniOp = Inc | Dec
            | Not
            | Neg
-           deriving Show
+           deriving (Show ,Eq)
+
 data BinOp = Add | Sub | Mul | Div | Rem
            | Lt | Le | Gt | Ge
            | Eq | Neq
            | Or | And
-           deriving Show
+           deriving (Show, Eq)
 
 
 
@@ -97,7 +99,7 @@ parseFn = do
 parseSeq :: Parser Stmt
 parseSeq = braces $ do
   list <- many parseStmt
-  return $ if null list then Nop else Seq list
+  pure $ if null list then Nop else Seq list
 
 
 parseStmt :: Parser Stmt
@@ -130,7 +132,7 @@ parseReturn = do
   reserved "return"
   expr <- parseExpr
   semi
-  return $ Return expr
+  pure $ Return expr
 
 
 parseAssign :: Parser Stmt
@@ -139,7 +141,7 @@ parseAssign = do
   reservedOp "="
   expr <- parseExpr
   semi
-  return $ name := expr
+  pure $ Assign name expr
 
 
 parseNop :: Parser Stmt
@@ -172,10 +174,18 @@ postfix name fun = Postfix (reservedOp name >> pure fun)
 
 -- Term
 
--- TODO: call
 parseTerm =
   parens parseExpr
     <|> Nat <$> natural
+    <|> parseCall
     <|> fmap Var identifier
     <|> (reserved "true" >> pure (Con True))
     <|> (reserved "false" >> pure (Con False))
+
+
+parseCall = do
+  id <- identifier
+  try
+    (do args <- parens $ sepBy parseExpr $ reservedOp ","
+        pure $ Call id args)
+    <|> pure (Var id)

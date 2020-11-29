@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ab5f71f5fa36d6780d52c6f5b4c5577ae3a5c15de6be4716695ef07b54d49826
+-- hash: 42f3b6b77fddd99b47fc784c72b93d56b4b8bd5d88c3ff2266a9d70acc21d767
 
 name:           comp
 version:        0.1.0.0
@@ -62,6 +62,7 @@ test-suite comp-test
   other-modules:
       CodeSpec
       CompSpec
+      ParserSpec
       Paths_comp
   hs-source-dirs:
       test

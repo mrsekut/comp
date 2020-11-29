@@ -33,12 +33,12 @@ execute' cmd pc vs =
 
 -- FIXME: clean
 row :: (Cmd, Vars) -> Integer -> (Integer, Vars)
-row (Goto l, vs) _     = (l, vs)
-row (Bind v n, vs) pc  = (pc+1, Map.insert v n vs)
+row (Goto l, vs)    _  = (l, vs)
+row (Bind v n, vs)  pc = (pc+1, Map.insert v n vs)
 row (BindV a b, vs) pc = (pc+1, bind a b vs)
-row (Inc a, vs) pc     = (pc+1, Map.update inc a vs)
-row (Dec a, vs) pc     = (pc+1, Map.update dec a vs)
-row (If n l, vs) pc    = case Map.lookup n vs of
+row (Inc a, vs)     pc = (pc+1, Map.update inc a vs)
+row (Dec a, vs)     pc = (pc+1, Map.update dec a vs)
+row (If n l, vs)    pc = case Map.lookup n vs of
     Just x -> if x>0 then (l, vs) else (pc+1, vs)
     Nothing -> error "wwwww"
 
