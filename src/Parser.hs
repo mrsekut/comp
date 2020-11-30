@@ -3,7 +3,7 @@ module Parser (parseProgram, parseStmt, parseExpr, Define(..), Stmt(..), Expr(..
 import Text.Parsec.Expr
     ( buildExpressionParser, Assoc(AssocLeft), Operator(..) )
 import Text.ParserCombinators.Parsec
-    (alphaNum, char, lower, (<?>), (<|>), try, Parser ,many, parse, ParseError, sepBy)
+    (alphaNum, char, lower, (<?>), (<|>), try, Parser, many, parse, ParseError, sepBy)
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language
     ( GenLanguageDef(..), emptyDef )
@@ -12,16 +12,15 @@ import Text.ParserCombinators.Parsec.Language
 data Define = Fn String [Expr] Stmt
             deriving (Show ,Eq)
 
--- TODO: loop
 data Stmt = Nop
           | Assign String Expr
           | If Expr Stmt Stmt
           | While Expr Stmt
           | Return Expr
           | Seq [Stmt]
+          | Loop Expr Stmt
           deriving (Show, Eq)
 
--- TODO: 型宣言 `int a,b,c,d,..;`
 data Expr = Nat Integer
           | Var String
           | Con Bool
@@ -84,7 +83,6 @@ parseProgram = parse (whiteSpace >> many parseFn) "myparser"
 
 -- Function
 
-
 parseFn :: Parser Define
 parseFn = do
   reserved "fn"
@@ -93,8 +91,8 @@ parseFn = do
   Fn name args <$> parseSeq
 
 
--- Statement
 
+-- Statement
 
 parseSeq :: Parser Stmt
 parseSeq = braces $ do
@@ -103,8 +101,9 @@ parseSeq = braces $ do
 
 
 parseStmt :: Parser Stmt
-parseStmt = parseIf
-        <|> parseSeq
+parseStmt = parseSeq
+        <|> parseIf
+        <|> parseLoop
         <|> parseAssign
         <|> parseWhile
         <|> parseReturn
@@ -118,6 +117,13 @@ parseIf = do
   s1 <- parseStmt
   s2 <- try (reserved "else" >> parseStmt) <|> pure Nop
   pure $ If cond s1 s2
+
+
+parseLoop :: Parser Stmt
+parseLoop = do
+  reserved "loop"
+  cnt <- parens parseExpr
+  Loop cnt <$> parseStmt
 
 
 parseWhile :: Parser Stmt

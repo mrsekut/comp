@@ -8,8 +8,17 @@ spec :: Spec
 spec = do
     describe "program" $ do
         it "program" $ do
-            let input = "fn hoge(a,b) {return 1+1;}"
-            testParseProgram input `shouldBe` [Fn "hoge" [Var "a",Var "b"] (Seq [Return (Bio Add (Nat 1) (Nat 1))])]
+            let input = "fn hoge(a,b) {r = a + b; return(1);}"
+            testParseProgram input `shouldBe` [Fn "hoge" [Var "a",Var "b"] (Seq [Assign "r" (Bio Add (Var "a") (Var "b")),Return (Nat 1)])]
+
+    describe "statements" $ do
+        it "if" $ do
+            let input = "if (true) { a = 1; b = 2; }"
+            testParseStmt input `shouldBe` If (Con True) (Seq [Assign "a" (Nat 1), Assign "b" (Nat 2)]) Nop
+        it "loop" $ do
+            let input = "loop(2) { a = a + 1; }"
+            testParseStmt input `shouldBe` Loop (Nat 2) (Seq [Assign "a" (Bio Add (Var "a") (Nat 1))])
+
 
     describe "expr" $ do
         it "terms" $ do
@@ -27,6 +36,13 @@ testParseExpr :: String -> Expr
 testParseExpr input = case parse parseExpr "Example" input of
   Left{}    -> error "Parse failure"
   Right str -> str
+
+
+testParseStmt :: String -> Stmt
+testParseStmt input = case parse parseStmt "Example" input of
+  Left{}    -> error "Parse failure"
+  Right str -> str
+
 
 
 testParseProgram :: String -> [Define]
