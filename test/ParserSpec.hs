@@ -18,6 +18,9 @@ spec = do
         it "loop" $ do
             let input = "loop(2) { a = a + 1; }"
             testParseStmt input `shouldBe` Loop (Nat 2) (Seq [Assign "a" (Bio Add (Var "a") (Nat 1))])
+        it "initialize" $ do
+            let input = "int a, b, c;"
+            testParseStmt input `shouldBe` Init [Var "a",Var "b",Var "c"]
 
 
     describe "expr" $ do

@@ -19,6 +19,7 @@ data Stmt = Nop
           | Return Expr
           | Seq [Stmt]
           | Loop Expr Stmt
+          | Init [Expr]
           deriving (Show, Eq)
 
 data Expr = Nat Integer
@@ -57,6 +58,7 @@ def = emptyDef {
   reservedNames =
     [ "true", "false"
     , "if", "then", "else", "while", "loop", "return", "fn"
+    , "int"
     ],
   caseSensitive = True
 }
@@ -107,6 +109,7 @@ parseStmt = parseSeq
         <|> parseAssign
         <|> parseWhile
         <|> parseReturn
+        <|> parseInit
         <|> parseNop
 
 
@@ -148,6 +151,14 @@ parseAssign = do
   expr <- parseExpr
   semi
   pure $ Assign name expr
+
+
+parseInit :: Parser Stmt
+parseInit = do
+  reserved "int"
+  vars <- commaSep parseExpr
+  semi
+  pure $ Init vars
 
 
 parseNop :: Parser Stmt
