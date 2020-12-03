@@ -1,12 +1,25 @@
-module Parser (main, parseProgram, parseStmt, parseExpr, Define(..), Stmt(..), Expr(..), UniOpS(..), BinOp(..)) where
+module Parser
+  ( Define(..), Stmt(..), Expr(..), UniOpS(..), BinOp(..)
+  , main
+  , parseProgram , parseStmt , parseExpr
+  )
+  where
 
-import Text.Parsec.Expr
-    ( buildExpressionParser, Assoc(AssocLeft), Operator(..) )
-import Text.ParserCombinators.Parsec
-    (alphaNum, char, lower, (<?>), (<|>), try, Parser, many, parse, ParseError, sepBy)
 import qualified Text.ParserCombinators.Parsec.Token as P
+import Text.Parsec.Expr
+    ( Assoc(AssocLeft), Operator(..)
+    , buildExpressionParser
+    )
+import Text.ParserCombinators.Parsec
+    ( Parser, ParseError
+    , alphaNum, char, lower, (<?>), (<|>), try, many, parse,  sepBy
+    )
 import Text.ParserCombinators.Parsec.Language
     ( GenLanguageDef(..), emptyDef )
+
+
+
+-- AST Define
 
 
 data Define = Fn String [Expr] Stmt
@@ -35,12 +48,29 @@ data UniOpS = Inc | Dec
            deriving (Show ,Eq)
 data UniOpE =  Not | Neg
            deriving (Show ,Eq)
-
 data BinOp = Add | Sub | Mul | Div | Rem
            | Lt | Le | Gt | Ge
            | Eq | Neq
            | Or | And
            deriving (Show, Eq)
+
+
+
+-- Main
+
+main :: IO ()
+main = do
+  cs <- readC "./samples/C/divide.c"
+  print cs
+
+
+readC :: FilePath -> IO [Define]
+readC filePath = do
+  src <- readFile filePath
+  case parseProgram src of
+      Right xs -> pure xs
+      _ -> error "parse error"
+
 
 
 -- Program
@@ -212,6 +242,7 @@ def = emptyDef {
     ],
   caseSensitive = True
 }
+
 
 lexer = P.makeTokenParser def
 parens = P.parens lexer
