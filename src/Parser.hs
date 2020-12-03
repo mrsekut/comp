@@ -1,4 +1,4 @@
-module Parser (parseProgram, parseStmt, parseExpr, Define(..), Stmt(..), Expr(..), UniOp(..), BinOp(..)) where
+module Parser (main, parseProgram, parseStmt, parseExpr, Define(..), Stmt(..), Expr(..), UniOpS(..), BinOp(..)) where
 
 import Text.Parsec.Expr
     ( buildExpressionParser, Assoc(AssocLeft), Operator(..) )
@@ -20,19 +20,20 @@ data Stmt = Nop
           | Seq [Stmt]
           | Loop Expr Stmt
           | Init [Expr]
+          | UnoS UniOpS Expr
           deriving (Show, Eq)
 
 data Expr = Nat Integer
           | Var String
           | Con Bool
-          | Uno UniOp Expr
+          | UnoE UniOpE Expr
           | Bio BinOp Expr Expr
           | Call String [Expr]
           deriving (Show, Eq)
 
-data UniOp = Inc | Dec
-           | Not
-           | Neg
+data UniOpS = Inc | Dec
+           deriving (Show ,Eq)
+data UniOpE =  Not | Neg
            deriving (Show ,Eq)
 
 data BinOp = Add | Sub | Mul | Div | Rem
@@ -40,40 +41,6 @@ data BinOp = Add | Sub | Mul | Div | Rem
            | Eq | Neq
            | Or | And
            deriving (Show, Eq)
-
-
-
-
-def = emptyDef {
-  commentStart = "/*", commentEnd = "*/", commentLine = "//",
-  identStart = lower,
-  identLetter = alphaNum <|> char '_',
-  reservedOpNames =
-    [ "++", "--"
-    , "+", "-", "*", "/", "%"
-    , "==", "!=", "<=", "<", ">=", ">"
-    , "&&", "||", "!"
-    , "=", ","
-    ],
-  reservedNames =
-    [ "true", "false"
-    , "if", "then", "else", "while", "loop", "return", "fn"
-    , "int"
-    ],
-  caseSensitive = True
-}
-
-lexer = P.makeTokenParser def
-parens = P.parens lexer
-identifier = P.identifier lexer
-reservedOp = P.reservedOp lexer
-reserved = P.reserved lexer
-natural = P.natural lexer
-semi = P.semi lexer
-braces = P.braces lexer
-commaSep = P.commaSep lexer
-whiteSpace = P.whiteSpace lexer
-
 
 
 -- Program
@@ -104,6 +71,8 @@ parseSeq = braces $ do
 
 parseStmt :: Parser Stmt
 parseStmt = parseSeq
+        <|> parseInc
+        <|> parseDec
         <|> parseIf
         <|> parseLoop
         <|> parseAssign
@@ -161,6 +130,22 @@ parseInit = do
   pure $ Init vars
 
 
+parseInc :: Parser Stmt
+parseInc = try $ do
+  n <- parseExpr
+  reservedOp "++"
+  semi
+  pure $ UnoS Inc n
+
+
+parseDec :: Parser Stmt
+parseDec = try $ do
+  n <- parseExpr
+  reservedOp "--"
+  semi
+  pure $ UnoS Dec n
+
+
 parseNop :: Parser Stmt
 parseNop = semi >> pure Nop
 
@@ -173,8 +158,7 @@ parseExpr = buildExpressionParser exprOps parseTerm <?> "expression"
 
 
 exprOps =
-  [ [postfix "++" (Uno Inc), postfix "--" (Uno Dec)]
-  , [prefix "!" (Uno Not), prefix "-" (Uno Neg)]
+  [ [prefix "!" (UnoE Not), prefix "-" (UnoE Neg)]
   , [binaryl "*" (Bio Mul), binaryl "/" (Bio Div), binaryl "%" (Bio Rem)]
   , [binaryl "+" (Bio Add), binaryl "-" (Bio Sub)]
   , [binaryl "<" (Bio Lt), binaryl "<=" (Bio Le), binaryl ">" (Bio Gt), binaryl ">=" (Bio Ge), binaryl "<=" (Bio Sub)]
@@ -185,7 +169,6 @@ exprOps =
 
 binaryl name fun = Infix (reservedOp name >> pure fun) AssocLeft
 prefix name fun  = Prefix (reservedOp name >> pure fun)
-postfix name fun = Postfix (reservedOp name >> pure fun)
 
 
 
@@ -206,3 +189,37 @@ parseCall = do
     (do args <- parens $ sepBy parseExpr $ reservedOp ","
         pure $ Call id args)
     <|> pure (Var id)
+
+
+
+-- Parsec Utils
+
+def = emptyDef {
+  commentStart = "/*", commentEnd = "*/", commentLine = "//",
+  identStart = lower,
+  identLetter = alphaNum <|> char '_',
+  reservedOpNames =
+    [ "++", "--"
+    , "+", "-", "*", "/", "%"
+    , "==", "!=", "<=", "<", ">=", ">"
+    , "&&", "||", "!"
+    , "=", ","
+    ],
+  reservedNames =
+    [ "true", "false"
+    , "if", "then", "else", "while", "loop", "return", "fn"
+    , "int"
+    ],
+  caseSensitive = True
+}
+
+lexer = P.makeTokenParser def
+parens = P.parens lexer
+identifier = P.identifier lexer
+reservedOp = P.reservedOp lexer
+reserved = P.reserved lexer
+natural = P.natural lexer
+semi = P.semi lexer
+braces = P.braces lexer
+commaSep = P.commaSep lexer
+whiteSpace = P.whiteSpace lexer

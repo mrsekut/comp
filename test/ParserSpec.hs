@@ -21,6 +21,9 @@ spec = do
         it "initialize" $ do
             let input = "int a, b, c;"
             testParseStmt input `shouldBe` Init [Var "a",Var "b",Var "c"]
+        it "inc" $ do
+            let input = "i++;"
+            testParseStmt input `shouldBe` UnoS Inc (Var "i")
 
 
     describe "expr" $ do
