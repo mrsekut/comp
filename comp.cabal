@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 42f3b6b77fddd99b47fc784c72b93d56b4b8bd5d88c3ff2266a9d70acc21d767
+-- hash: 2dffaf168bfc2416eb84c6adccf82d51b1213960f51f2e606b01afcc2ba583ac
 
 name:           comp
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      AST.Define
       Code
       Comp
       Parser

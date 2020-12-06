@@ -3,6 +3,7 @@ module ParserSpec (spec) where
 import Test.Hspec
 import Text.ParserCombinators.Parsec (parseTest, parse)
 import Parser
+import AST.Define ( Define(..), Stmt(..), Expr(..), UniOpS(..), BinOp(..) )
 
 spec :: Spec
 spec = do
