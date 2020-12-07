@@ -1,5 +1,9 @@
 fn add(x, y) {
-    if (y >= 0) {
+    int a;
+
+    a = y;
+    a++;
+    if (a > 0) {
         loop(y)
             x++;
         return(x);
