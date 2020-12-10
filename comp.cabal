@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2dffaf168bfc2416eb84c6adccf82d51b1213960f51f2e606b01afcc2ba583ac
+-- hash: 69113019b9d65c2a8d3c11af7adfb45df4546b1c2db8a0016566690597afb1e0
 
 name:           comp
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       AST.Define
       AST.Program
       Code
+      CodeGen
       Comp
       Parser
       ToProgram
@@ -40,7 +41,9 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , mtl
     , parsec
+    , text
   default-language: Haskell2010
 
 executable comp-exe
@@ -54,7 +57,9 @@ executable comp-exe
       base >=4.7 && <5
     , comp
     , containers
+    , mtl
     , parsec
+    , text
   default-language: Haskell2010
 
 test-suite comp-test
@@ -74,5 +79,7 @@ test-suite comp-test
     , comp
     , containers
     , hspec
+    , mtl
     , parsec
+    , text
   default-language: Haskell2010
