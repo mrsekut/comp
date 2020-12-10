@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 69113019b9d65c2a8d3c11af7adfb45df4546b1c2db8a0016566690597afb1e0
+-- hash: 07fc2d4f7c3174986cc54689ba8be37533520955a37748a872a41683df8a54ab
 
 name:           comp
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       Code
       CodeGen
       Comp
+      Data.Functions
       Parser
       ToProgram
   other-modules:
