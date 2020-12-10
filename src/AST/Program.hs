@@ -1,4 +1,4 @@
-module Program (Vars, Program(..), Cmd(..))  where
+module AST.Program (Vars, Program(..), Cmd(..))  where
 
 import qualified Data.Map as Map
 

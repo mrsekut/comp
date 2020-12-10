@@ -2,7 +2,7 @@ module CompSpec (spec) where
 
 import Test.Hspec
 import qualified Data.Map as Map
-import Program (Program(..), Vars, Cmd(..))
+import AST.Program (Program(..), Vars, Cmd(..))
 import Comp (execute)
 
 spec :: Spec

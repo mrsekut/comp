@@ -1,6 +1,6 @@
 module ToProgram where
 
-import Program (Program(..), Vars, Cmd(..))
+import AST.Program (Program(..), Vars, Cmd(..))
 import qualified Data.Map as Map
 import qualified Code as C
 

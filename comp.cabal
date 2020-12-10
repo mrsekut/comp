@@ -28,10 +28,10 @@ source-repository head
 library
   exposed-modules:
       AST.Define
+      AST.Program
       Code
       Comp
       Parser
-      Program
       ToProgram
   other-modules:
       Paths_comp
