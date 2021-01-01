@@ -1,16 +1,18 @@
 fn add(x, y) {
-    int a;
+    int a, r;
 
     a = y;
     a++;
     if (a > 0) {
         loop(y)
             x++;
-        return(x);
+        r = x;
     } else {
         y = -y;
         loop(y)
             x--;
-        return(x);
+        r = x;
     }
+
+    return(r);
 }

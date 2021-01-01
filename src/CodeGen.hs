@@ -24,22 +24,30 @@ class Reifiable a where
     reify :: a -> W Text
 
 instance Reifiable Define where
+    -- reify (Fn f as b) = do
+    --     args <- mapM reify as
+    --     let params = T.intercalate ", " args
+    --     body <- reify b
+    --     brs <- braces body
+    --     pure $ T.concat ["fn ", T.pack f, "(", params, ")", brs]
+
+    -- FIXME: debugがしづらいので, Cの書き方で出す
     reify (Fn f as b) = do
         args <- mapM reify as
-        let params = T.intercalate ", " args
+        let params = T.intercalate ", int " args
         body <- reify b
         brs <- braces body
-        pure $ T.concat ["fn ", T.pack f, "(", params, ")", brs]
+        pure $ T.concat ["int ", T.pack f, "(int ", params, ")", brs]
 
 instance Reifiable Stmt where
     reify (Assign v e) = do
         exp <- reify e
         pure $ T.concat [T.pack v,"=",exp]
-    reify (If c t e) = do
+    reify (IfElse c t e) = do
         cnd <- reify c
         thn <- reify t
         els <- reify e
-        pure $ T.concat ["if (", cnd, ") {", thn , "} else {", els, "}"]
+        pure $ T.concat ["if (", cnd, ") {\n\t", thn , "} else {\n\t", els, "}"]
     reify (While c b) = do
         cnd <- reify c
         body <- reify b
@@ -55,13 +63,15 @@ instance Reifiable Stmt where
         cnt <- reify c
         body <- reify b
         brs <- braces body
-        pure $ T.concat ["loop (", cnt, ")", brs]
+        -- FIXME: debugがしづらいのでforで出す
+        -- pure $ T.concat ["loop (", cnt, ")", brs]
+        pure $ T.concat ["for ( i=0; i<", cnt, "; i++)", brs]
     reify (Init vs) = do
         stmts <- mapM reify vs
         pure $ T.concat[T.intercalate "," stmts]
     reify (UnoS op e) = do
         exp <- reify e
-        pure $ T.concat [exp, unoS op]
+        pure $ T.concat [exp, unoS op, ";"]
     reify Nop = pure $ T.pack ""
 
 
@@ -85,8 +95,8 @@ instance Reifiable Expr where
 -- Utils
 
 unoS :: UniOpS -> Text
-unoS Inc = "++"
-unoS Dec = "--"
+unoS IncOp = "++"
+unoS DecOp = "--"
 
 
 unoE :: UniOpE -> Text

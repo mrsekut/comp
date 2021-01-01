@@ -15,7 +15,7 @@ spec = do
     describe "statements" $ do
         it "if" $ do
             let input = "if (true) { a = 1; b = 2; }"
-            testParseStmt input `shouldBe` If (Con True) (Seq [Assign "a" (Nat 1), Assign "b" (Nat 2)]) Nop
+            testParseStmt input `shouldBe` IfElse (Con True) (Seq [Assign "a" (Nat 1), Assign "b" (Nat 2)]) Nop
         it "loop" $ do
             let input = "loop(2) { a = a + 1; }"
             testParseStmt input `shouldBe` Loop (Nat 2) (Seq [Assign "a" (Bio Add (Var "a") (Nat 1))])
@@ -24,7 +24,7 @@ spec = do
             testParseStmt input `shouldBe` Init [Var "a",Var "b",Var "c"]
         it "inc" $ do
             let input = "i++;"
-            testParseStmt input `shouldBe` UnoS Inc (Var "i")
+            testParseStmt input `shouldBe` UnoS IncOp (Var "i")
 
 
     describe "expr" $ do

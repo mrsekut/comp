@@ -1,6 +1,7 @@
 module Parser
   ( main
   , parseProgram , parseStmt , parseExpr
+  , parseProgramDebug
   )
   where
 
@@ -27,7 +28,7 @@ import Text.ParserCombinators.Parsec.Language
 
 main :: IO ()
 main = do
-  cs <- readC "./samples/C/divide.c"
+  cs <- readC "./samples/C/add.c"
   print cs
 
 
@@ -44,6 +45,12 @@ readC filePath = do
 
 parseProgram :: String -> Either ParseError [Define]
 parseProgram = parse (whiteSpace >> many parseFn) "myparser"
+
+
+parseProgramDebug :: String -> Define
+parseProgramDebug src = case parse (whiteSpace >> many parseFn) "myparser" src of
+  Right xs -> head xs
+  _ -> error "parse error"
 
 
 
@@ -85,7 +92,7 @@ parseIf = do
   cond <- parens parseExpr
   s1 <- parseStmt
   s2 <- try (reserved "else" >> parseStmt) <|> pure Nop
-  pure $ If cond s1 s2
+  pure $ IfElse cond s1 s2
 
 
 parseLoop :: Parser Stmt
@@ -132,7 +139,7 @@ parseInc = try $ do
   n <- parseExpr
   reservedOp "++"
   semi
-  pure $ UnoS Inc n
+  pure $ UnoS IncOp n
 
 
 parseDec :: Parser Stmt
@@ -140,7 +147,7 @@ parseDec = try $ do
   n <- parseExpr
   reservedOp "--"
   semi
-  pure $ UnoS Dec n
+  pure $ UnoS DecOp n
 
 
 parseNop :: Parser Stmt
