@@ -68,7 +68,7 @@ instance Reifiable Stmt where
         pure $ T.concat ["for ( i=0; i<", cnt, "; i++)", brs]
     reify (Init vs) = do
         stmts <- mapM reify vs
-        pure $ T.concat[T.intercalate "," stmts]
+        pure $ T.concat ["int ", T.intercalate "," stmts]
     reify (UnoS op e) = do
         exp <- reify e
         pure $ T.concat [exp, unoS op, ";"]

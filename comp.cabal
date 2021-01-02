@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ee8d32e21d81fe8fec440b60a43593947c3ca46d8aed4f130a64babee19edab3
+-- hash: d317435b39c7cf6534526e0f5e3053c3ee129074f32ec1eddcf8ec301145c739
 
 name:           comp
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       AST.Define
+      AST.JumpBridge
       AST.Program
       Code
       CodeGen
