@@ -1,7 +1,7 @@
 module ToProgram where
 
 import AST.Program (Program(..), Vars, Cmd(..))
-import qualified Data.Map as Map
+import qualified Data.Map as M
 import qualified Code as C
 
 
@@ -45,7 +45,7 @@ toProgram :: ProgramCode -> Program
 toProgram (ProgramCode k m s) = Program (initializeVars k m) (makeCmds s)
 
 initializeVars :: InputCode -> VarsCode -> Vars
-initializeVars k m = Map.fromList ([(v,0) | v <- [0..k+m]])
+initializeVars k m = M.fromList ([(v,0) | v <- [0..k+m]])
 
 makeCmds :: CmdsCode -> [Cmd]
 makeCmds c = map toCmd $ C.decode c

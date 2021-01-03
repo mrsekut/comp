@@ -1,8 +1,8 @@
-module Data.Functions (add) where
+module ExtendC.Data.Functions (add) where
 
-import AST.Define ( Define(..), Stmt(..), Expr(..)
-                  , UniOpS(..), UniOpE(..), BinOp(..)
-                  )
+import ExtendC.AST.Define ( Define(..), Stmt(..), Expr(..)
+                          , UniOpS(..), UniOpE(..), BinOp(..)
+                          )
 
 
 

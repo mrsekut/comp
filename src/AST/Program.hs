@@ -1,8 +1,8 @@
 module AST.Program (Vars, Program(..), Cmd(..))  where
 
-import qualified Data.Map as Map
+import qualified Data.Map as M
 
-type Vars = Map.Map Integer Integer
+type Vars = M.Map Integer Integer
 data Program = Program Vars [Cmd] deriving (Show)
 
 type Line = Integer

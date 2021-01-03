@@ -1,4 +1,4 @@
-module AST.JumpBridge
+module ExtendC.JumpBridge
   ( JumpBridge(..)
   , jumpBridge, toDefine, removeInit, makeVMap, changeVars
   , changeAllVars, toJump
@@ -7,12 +7,12 @@ module AST.JumpBridge
 
 import Control.Monad.State
 import qualified Data.Map.Strict as M
-import AST.Define
+import ExtendC.AST.Define
   ( Define(..), Stmt(..), Expr(..)
   , UniOpS(..), UniOpE(..), BinOp(..)
   )
 import Data.Maybe (fromJust)
-import Data.Functions (add)
+import ExtendC.Data.Functions (add)
 import Util ( mapInd )
 
 

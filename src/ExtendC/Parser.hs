@@ -1,11 +1,11 @@
-module Parser
+module ExtendC.Parser
   ( main
   , parseProgram , parseStmt , parseExpr
   , parseProgramDebug
   )
   where
 
-import AST.Define
+import ExtendC.AST.Define
   ( Define(..), Stmt(..), Expr(..)
   , UniOpS(..), UniOpE(..), BinOp(..)
   )

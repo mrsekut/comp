@@ -3,12 +3,12 @@ module DefineSpec (spec) where
 import Test.Hspec
 import Text.ParserCombinators.Parsec (parseTest, parse)
 import qualified Data.Map.Strict as M
-import AST.JumpBridge
-    ( JumpBridge(..) , jumpBridge
-    , toDefine, removeInit, makeVMap, changeVars
-    , changeAllVars, toJump
-    )
-import AST.Define ( Define(..), Stmt(..), Expr(..), UniOpS(..), UniOpE(..), BinOp(..) )
+import ExtendC.JumpBridge
+  ( JumpBridge(..)
+  , jumpBridge, toDefine, removeInit, makeVMap, changeVars
+  , changeAllVars, toJump
+  )
+import ExtendC.AST.Define ( Define(..), Stmt(..), Expr(..), UniOpS(..), UniOpE(..), BinOp(..) )
 
 spec :: Spec
 spec = do

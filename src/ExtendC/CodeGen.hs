@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
-module CodeGen where
+module ExtendC.CodeGen where
 
 import Control.Monad.RWS
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Text (Text)
-import AST.Define ( Define(..), Stmt(..), Expr(..)
-                  , UniOpS(..), UniOpE(..), BinOp(..)
-                  )
+import ExtendC.AST.Define ( Define(..), Stmt(..), Expr(..)
+                          , UniOpS(..), UniOpE(..), BinOp(..)
+                          )
 
 
 
 -- W
 
 type W a = RWST () Text State IO a
-data State = State { variableCount :: Int }
+newtype State = State { variableCount :: Int }
 
 
 

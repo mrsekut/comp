@@ -1,4 +1,4 @@
-module AST.Define
+module ExtendC.AST.Define
   ( Define(..), Stmt(..), Expr(..)
   , UniOpS(..), UniOpE(..), BinOp(..)
   )
