@@ -12,6 +12,8 @@ import AST.Define
   , UniOpS(..), UniOpE(..), BinOp(..)
   )
 import Data.Maybe (fromJust)
+import Data.Functions (add)
+import Util ( mapInd )
 
 
 
@@ -130,7 +132,6 @@ setInits inits stmts = Seq $ inits:seq
 
 
 -- Transformしやすい形に変形する
--- FIXME: name
 jumpBridge :: VMap -> JumpBridge
 jumpBridge vmap = JumpBridge { variableIndex = M.size vmap }
 
@@ -145,9 +146,9 @@ transform (Seq ss) = do
   pure [Seq $ concat aa]
 transform (Assign z (Bio Add (Var x) (Var y))) = do
   jump <- get
-  let vs@[v1, v2, v3, v4, v5, v6] = makeVariables (variableIndex jump) 6
+  let vs@[v1, v2, v3, v4] = makeVariables (variableIndex jump) 4
   updateVariables jump vs
-  pure $ add v1 v2 v3 v4 v5 v6
+  pure $ add x y z v1 v2 v3 v4
 transform s = pure [s]
 
 
@@ -161,38 +162,8 @@ updateVariables jump vs = do
 
 
 
--- AST JumpBridge
 
-
--- FIXME: move to Utils
-mapInd :: (a -> Int -> b) -> [a] -> [b]
-mapInd f l = zipWith f l [1..]
-
-
-
--- 中身を移植(変数の入れ替えなど)
-add :: String -> String -> String -> String -> String -> String -> [Stmt]
-add x y z v0 v1 r
-  = [ Assign v0 (Var x)
-    , Assign v1 (Var y)
-    , Assign r  (Nat 0)
-
-    , Assign "a" (Var v1)
-    , UnoS IncOp (Var "a")
-    , IfElse (Bio Gt (Var "a") (Nat 0))
-      (Seq [ Loop (Var v1) (UnoS IncOp (Var v0))
-           , Assign r (Var v0)])
-      (Seq [ Assign v1 (UnoE Neg (Var v1))
-           , Loop (Var v1) (UnoS DecOp (Var v0))
-           , Assign r (Var v0)])
-
-    , Assign z (Var r)
-    ]
-
-
--- TODO: 引数と返り値(x,y,z)の出力が微妙におかしい, add関数の内部がおかしいのか？
 -- TODO: debug手順ちゃんとまとめかないと時間アクト忘れる
--- TODO: add関数内の変数aの扱い
 -- TODO: JumpBridge全体的にりふぁくた
 -- TODO: add以外の関数をやっていく
 -- TODO: genやCコードも含めた一気通貫のテストコードが必要(後にgotoなどの変換をするので)

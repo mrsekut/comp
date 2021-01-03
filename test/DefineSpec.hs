@@ -63,40 +63,31 @@ spec = do
                     , Return (Var "v3")
                     ]
 
-        -- it "toDefine" $ do
-        --     -- FIXME: テストコードが間違っている
-        --     let pred = Seq [ Assign "v3" (Bio Add (Var "v1") (Var "v2"))
-        --                    , Return (Var "v3")
-        --                    ]
-        --     let inputJump = JumpBridge { variableIndex = 3 }
-        --     toDefine pred inputJump `shouldBe`
-        --         Seq [ Init [Var "v3",Var "v4",Var "v5",Var "v6",Var "v7",Var "v8",Var "v9"]
-        --             , Assign "v7" (Var "v4")
-        --             , Assign "v8" (Var "v5")
-        --             , Assign "v9" (Nat 0)
-        --             , Assign "a" (Var "v8")
-        --             , UnoS IncOp (Var "a")
-        --             , IfElse (Bio Gt (Var "a") (Nat 0)) (Seq [Loop (Var "v8") (UnoS IncOp (Var "v7"))
-        --             , Assign "v9" (Var "v7")]) (Seq [Assign "v8" (UnoE Neg (Var "v8"))
-        --             , Loop (Var "v8") (UnoS DecOp (Var "v7"))
-        --             , Assign "v9" (Var "v7")])
-        --             , Assign "v6" (Var "v9")
-        --             , Return (Var "v3")]
+        it "toDefine" $ do
+            let pred = Seq [ Assign "v3" (Bio Add (Var "v1") (Var "v2"))
+                           , Return (Var "v3")
+                           ]
+            let inputJump = JumpBridge { variableIndex = 3 }
+            toDefine pred inputJump `shouldBe`
+                Seq [ Init [Var "v3",Var "v4",Var "v5",Var "v6",Var "v7"]
+                    , Assign "v4" (Var "v1"),Assign "v5" (Var "v2"),Assign "v7" (Nat 0),Assign "v6" (Var "v5"),UnoS IncOp (Var "v6"),IfElse (Bio Gt (Var "v6") (Nat 0)) (Seq [Loop (Var "v5") (UnoS IncOp (Var "v4")),Assign "v7" (Var "v4")]) (Seq [Assign "v5" (UnoE Neg (Var "v5")),Loop (Var "v5") (UnoS DecOp (Var "v4")),Assign "v7" (Var "v4")]),Assign "v3" (Var "v7"),Return (Var "v3")]
 
         it "to jump code" $ do
-            -- FIXME: テストコードが間違っている
             let input = Fn "hoge" [Var "x",Var "y"] (Seq [ Init [Var "z"], Assign "z" (Bio Add (Var "x") (Var "y")), Return (Var "z") ])
             toJump input `shouldBe`
                 Fn "hoge" [Var "v1",Var "v2"]
-                ( Seq [ Init [Var "v3",Var "v4",Var "v5",Var "v6",Var "v7",Var "v8",Var "v9"]
-                      , Assign "v7" (Var "v4")
-                      , Assign "v8" (Var "v5")
-                      , Assign "v9" (Nat 0)
-                      , Assign "a" (Var "v8")
-                      , UnoS IncOp (Var "a")
-                      , IfElse (Bio Gt (Var "a") (Nat 0)) (Seq [Loop (Var "v8") (UnoS IncOp (Var "v7"))
-                      , Assign "v9" (Var "v7")]) (Seq [Assign "v8" (UnoE Neg (Var "v8"))
-                      , Loop (Var "v8") (UnoS DecOp (Var "v7"))
-                      , Assign "v9" (Var "v7")])
-                      , Assign "v6" (Var "v9")
-                      , Return (Var "v3")])
+                (Seq [ Init [Var "v3",Var "v4",Var "v5",Var "v6",Var "v7"]
+                     , Assign "v4" (Var "v1")
+                     , Assign "v5" (Var "v2")
+                     , Assign "v7" (Nat 0)
+                     , Assign "v6" (Var "v5")
+                     , UnoS IncOp (Var "v6")
+                     , IfElse (Bio Gt (Var "v6") (Nat 0))
+                        (Seq [ Loop (Var "v5") (UnoS IncOp (Var "v4"))
+                             , Assign "v7" (Var "v4")])
+                        (Seq [ Assign "v5" (UnoE Neg (Var "v5"))
+                             , Loop (Var "v5") (UnoS DecOp (Var "v4"))
+                             , Assign "v7" (Var "v4")])
+                     , Assign "v3" (Var "v7")
+                     , Return (Var "v3")
+                     ])

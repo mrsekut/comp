@@ -1,4 +1,4 @@
-module Data.Functions where
+module Data.Functions (add) where
 
 import AST.Define ( Define(..), Stmt(..), Expr(..)
                   , UniOpS(..), UniOpE(..), BinOp(..)
@@ -6,7 +6,40 @@ import AST.Define ( Define(..), Stmt(..), Expr(..)
 
 
 
+-- External Types
+
+
+type EInput = String
+type EOutput = String
+
+
+
+-- Internal Types
+
+
+type IInput = String
+type IOutput = String
+type IVar = String
+
+
+
 -- Four arithmetic operations
 
-add :: [Define]
-add =  [Fn "add" [Var "x",Var "y"] (Seq [Init [Var "a"],Assign "a" (Var "y"),UnoS Inc (Var "a"),If (Bio Gt (Var "a") (Nat 0)) (Seq [Loop (Var "y") (UnoS Inc (Var "x")),Return (Var "x")]) (Seq [Assign "y" (UnoE Neg (Var "y")),Loop (Var "y") (UnoS Dec (Var "x")),Return (Var "x")])])]
+
+add :: EInput -> EInput -> EOutput
+    -> IInput -> IInput -> IOutput -> IVar
+    -> [Stmt]
+add x y z v0 v1 a r
+  = [ Assign v0 (Var x)
+    , Assign v1 (Var y)
+    , Assign r  (Nat 0)
+    , Assign a (Var v1)
+    , UnoS IncOp (Var a)
+    , IfElse (Bio Gt (Var a) (Nat 0))
+      (Seq [ Loop (Var v1) (UnoS IncOp (Var v0))
+           , Assign r (Var v0)])
+      (Seq [ Assign v1 (UnoE Neg (Var v1))
+           , Loop (Var v1) (UnoS DecOp (Var v0))
+           , Assign r (Var v0)])
+    , Assign z (Var r)
+    ]

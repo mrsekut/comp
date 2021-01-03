@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d317435b39c7cf6534526e0f5e3053c3ee129074f32ec1eddcf8ec301145c739
+-- hash: b2b8104991c40d116362bc72723bbb2ef92365eae321da612000a205fa0d34e1
 
 name:           comp
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       Data.Functions
       Parser
       ToProgram
+      Util
   other-modules:
       Paths_comp
   hs-source-dirs:
