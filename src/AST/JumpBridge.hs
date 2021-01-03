@@ -1,9 +1,7 @@
 module AST.JumpBridge
   ( JumpBridge(..)
-  , fromDefine, toDefine, pre, makeVMap, changeVars
-
-  -- for debug
-  , var, mapInd
+  , jumpBridge, toDefine, removeInit, makeVMap, changeVars
+  , changeAllVars, toJump
   )
   where
 
@@ -22,7 +20,6 @@ import Data.Maybe (fromJust)
 
 type Args = [Expr]
 type EStmt = Stmt -- 前処理されたStmt
-type VMap = M.Map String String
 
 
 
@@ -30,23 +27,18 @@ type VMap = M.Map String String
 
 
 toJump :: Define -> Define
-toJump (Fn fname args stmts) = Fn fname args transfomedStmts
+toJump (Fn fname args stmt) = Fn fname eargs transfomedStmts
   where
     -- FIXME: clean: 処理が分散していてわかりにくい
-    transfomedStmts = toDefine pred (fromDefine stmts args)
-    vmap = makeVMap stmts args
-    estmt = changeVars vmap stmts
-    pred = pre estmt args
+    vmap = makeVMap args stmt
+    (eargs, estmt) = changeAllVars vmap args stmt
+    pred = removeInit estmt
+    transfomedStmts = toDefine pred (jumpBridge vmap)
 
 
--- FIXME: name
--- FIXME: 内部で使われている引数と、変数を全て書き換える必要がある
--- Initの除去
--- 引数をAssignとして変数宣言
--- 元の引数の総書き換え
-pre :: Stmt -> Args -> EStmt
-pre stmt args = case stmt of
-  Seq ss -> Seq $ argsAssign args ++ filter isNotInit ss
+removeInit :: Stmt -> EStmt
+removeInit stmt = case stmt of
+  Seq ss -> Seq $ filter isNotInit ss
   _      -> stmt
 
 
@@ -55,15 +47,31 @@ isNotInit (Init _) = False
 isNotInit _        = True
 
 
-argsAssign :: Args -> [Stmt]
-argsAssign = mapInd (\a i -> Assign (var i) a)
+
+-- Variables
 
 
-makeVMap :: Stmt -> Args -> VMap
-makeVMap stmt args = M.fromList $ zip vars $ mapInd (\_ i -> var i) vars
+type VMap = M.Map String String -- 初期変数のMap. 引数は含めない
+
+
+-- ①引数、内部変数の総書き換え
+changeAllVars :: VMap -> Args -> Stmt -> ([Expr], Stmt)
+changeAllVars vmap args stmt = (eargs, estmt)
+  where
+    estmt = changeVars vmap stmt
+    eargs = map (Var . var) [1..length args]
+
+
+makeVMap :: Args -> Stmt -> VMap
+makeVMap args stmt = M.fromList $ zip vars $ mapInd (\_ i -> var i) vars
   where
     vars = map unVar args ++ getVars stmt
 
+
+getVars :: Stmt -> [String]
+getVars (Seq ss)  = concatMap getVars ss
+getVars (Init es) = map unVar es
+getVars _         = []
 
 
 -- FIXME: clean, name, classを使って統一するとか？
@@ -93,25 +101,27 @@ changeVarsExpr vmap expr = case expr of
     key v = Var $ fromJust $ M.lookup v vmap
 
 
+var :: Int -> String
+var n = "v" ++ show n
+
+unVar :: Expr -> String
+unVar (Var v) = v
+
 
 
 -- AST JumpBridge
 
 
-data JumpBridge =
- JumpBridge { variables :: [String]
-            , variableIndex :: Int
-            }
-  deriving (Show, Eq)
+newtype JumpBridge = JumpBridge { variableIndex :: Int } deriving (Show, Eq)
 
 
--- FIXME: name微妙かもな
+-- FIXME: name微妙かもな, 引数名も微妙
 -- 前処理をしたStmt,JumpBridgeを使用し、変換を実施する
 toDefine :: EStmt -> JumpBridge -> Stmt
 toDefine ss jmp = setInits init stms
   where
     (stms, jump) = runState (transform ss) jmp
-    init = Init $ map (Var . var) [1..variableIndex jump]
+    init = Init $ map (Var . var) [variableIndex jmp..variableIndex jump]
 
 
 setInits :: Stmt -> [Stmt] -> Stmt
@@ -120,21 +130,9 @@ setInits inits stmts = Seq $ inits:seq
 
 
 -- Transformしやすい形に変形する
-fromDefine :: Stmt -> Args -> JumpBridge
-fromDefine stmts args =
-  JumpBridge { variables = makeVariables argsLen varsLen
-             , variableIndex = argsLen + varsLen
-             }
-  where
-    argsLen = length args
-    vars = getVars stmts
-    varsLen = length vars
-
-
-getVars :: Stmt -> [String]
-getVars (Seq ss)  = concatMap getVars ss
-getVars (Init es) = map (\(Var v) -> v) es
-getVars _         = []
+-- FIXME: name
+jumpBridge :: VMap -> JumpBridge
+jumpBridge vmap = JumpBridge { variableIndex = M.size vmap }
 
 
 
@@ -159,20 +157,11 @@ makeVariables idx n  = map var [idx+1 .. idx+n]
 
 updateVariables :: JumpBridge -> [String] -> State JumpBridge ()
 updateVariables jump vs = do
-  put $ jump { variables = variables jump ++ vs
-             , variableIndex = variableIndex jump + length vs
-             }
+  put $ jump { variableIndex = variableIndex jump + length vs }
 
 
 
 -- AST JumpBridge
-
-
-var :: Int -> String
-var n = "v" ++ show n
-
-unVar :: Expr -> String
-unVar (Var v) = v
 
 
 -- FIXME: move to Utils
@@ -201,8 +190,13 @@ add x y z v0 v1 r
     ]
 
 
--- TODO: Cの関数の引数と変数の兼ね合い
-        -- まずテストコードなおす
--- TODO: Cの関数の最初の内部変数のそう書き換え
--- TODO: 今の出力は、引数のx, yと、もとの変数zがおかしい。ソレ以外は会っている
--- TODO: 元々のコードに`v1`のような変数があるとおかしくなる
+-- TODO: 引数と返り値(x,y,z)の出力が微妙におかしい, add関数の内部がおかしいのか？
+-- TODO: debug手順ちゃんとまとめかないと時間アクト忘れる
+-- TODO: add関数内の変数aの扱い
+-- TODO: JumpBridge全体的にりふぁくた
+-- TODO: add以外の関数をやっていく
+-- TODO: genやCコードも含めた一気通貫のテストコードが必要(後にgotoなどの変換をするので)
+-- ①引数、内部変数の総書き換え
+-- ②JumpBridgeに変換
+-- ③変換
+-- ④もとに戻す

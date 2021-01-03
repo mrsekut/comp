@@ -42,7 +42,7 @@ instance Reifiable Define where
 instance Reifiable Stmt where
     reify (Assign v e) = do
         exp <- reify e
-        pure $ T.concat [T.pack v,"=",exp]
+        pure $ T.concat [T.pack v," = ",exp]
     reify (IfElse c t e) = do
         cnd <- reify c
         thn <- reify t
@@ -65,7 +65,7 @@ instance Reifiable Stmt where
         brs <- braces body
         -- FIXME: debugがしづらいのでforで出す
         -- pure $ T.concat ["loop (", cnt, ")", brs]
-        pure $ T.concat ["for ( i=0; i<", cnt, "; i++)", brs]
+        pure $ T.concat ["for (i=0; i<", cnt, "; i++)", brs]
     reify (Init vs) = do
         stmts <- mapM reify vs
         pure $ T.concat ["int ", T.intercalate "," stmts]
