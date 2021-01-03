@@ -1,6 +1,9 @@
 module AST.JumpBridge
   ( JumpBridge(..)
-  , fromDefine, toDefine, pre
+  , fromDefine, toDefine, pre, makeVMap, changeVars
+
+  -- for debug
+  , var, mapInd
   )
   where
 
@@ -10,6 +13,7 @@ import AST.Define
   ( Define(..), Stmt(..), Expr(..)
   , UniOpS(..), UniOpE(..), BinOp(..)
   )
+import Data.Maybe (fromJust)
 
 
 
@@ -18,7 +22,7 @@ import AST.Define
 
 type Args = [Expr]
 type EStmt = Stmt -- 前処理されたStmt
-type VMap = M.Map Expr String
+type VMap = M.Map String String
 
 
 
@@ -29,7 +33,10 @@ toJump :: Define -> Define
 toJump (Fn fname args stmts) = Fn fname args transfomedStmts
   where
     -- FIXME: clean: 処理が分散していてわかりにくい
-    transfomedStmts = toDefine (pre stmts args) (fromDefine stmts args)
+    transfomedStmts = toDefine pred (fromDefine stmts args)
+    vmap = makeVMap stmts args
+    estmt = changeVars vmap stmts
+    pred = pre estmt args
 
 
 -- FIXME: name
@@ -38,8 +45,9 @@ toJump (Fn fname args stmts) = Fn fname args transfomedStmts
 -- 引数をAssignとして変数宣言
 -- 元の引数の総書き換え
 pre :: Stmt -> Args -> EStmt
-pre (Seq ss) args = Seq $ argsAssign args ++ filter isNotInit ss
-pre ss _          = ss
+pre stmt args = case stmt of
+  Seq ss -> Seq $ argsAssign args ++ filter isNotInit ss
+  _      -> stmt
 
 
 isNotInit :: Stmt -> Bool
@@ -51,10 +59,38 @@ argsAssign :: Args -> [Stmt]
 argsAssign = mapInd (\a i -> Assign (var i) a)
 
 
--- >>> changeVars stmt Var "x"
-changeVars :: Stmt -> VMap -> String
-changeVars = undefined
+makeVMap :: Stmt -> Args -> VMap
+makeVMap stmt args = M.fromList $ zip vars $ mapInd (\_ i -> var i) vars
+  where
+    vars = map unVar args ++ getVars stmt
 
+
+
+-- FIXME: clean, name, classを使って統一するとか？
+changeVars :: VMap -> Stmt -> EStmt
+changeVars vmap stmt = case stmt of
+  Seq stmt        -> Seq $ map (changeVars vmap) stmt
+  Assign a expr   -> Assign (key a) (changeExpr expr)
+  IfElse expr t e -> IfElse (changeExpr expr) t e
+  Return expr     -> Return (changeExpr expr)
+  Loop expr l     -> Loop (changeExpr expr) l
+  UnoS op expr    -> UnoS op (changeExpr expr)
+  _               -> stmt
+  where
+    key v = fromJust $ M.lookup v vmap
+    changeExpr = changeVarsExpr vmap
+
+
+-- FIXME: clean, name
+changeVarsExpr :: VMap -> Expr -> Expr
+changeVarsExpr vmap expr = case expr of
+  Var s              -> key s
+  UnoE op expr       -> UnoE op $ changeVarsExpr vmap expr
+  Bio op expr1 expr2 -> Bio op (changeVarsExpr vmap expr1) (changeVarsExpr vmap expr2)
+  Call fname exprs   -> Call fname $ map (changeVarsExpr vmap) exprs
+  _                  -> expr
+  where
+    key v = Var $ fromJust $ M.lookup v vmap
 
 
 
@@ -75,7 +111,7 @@ toDefine :: EStmt -> JumpBridge -> Stmt
 toDefine ss jmp = setInits init stms
   where
     (stms, jump) = runState (transform ss) jmp
-    init = Init $ map Var $ variables jump
+    init = Init $ map (Var . var) [1..variableIndex jump]
 
 
 setInits :: Stmt -> [Stmt] -> Stmt
@@ -134,6 +170,9 @@ updateVariables jump vs = do
 
 var :: Int -> String
 var n = "v" ++ show n
+
+unVar :: Expr -> String
+unVar (Var v) = v
 
 
 -- FIXME: move to Utils
