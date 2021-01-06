@@ -1,4 +1,8 @@
-module Code (Code, element, code, decode, len, replace, sequence, pair) where
+module Code
+  ( Code
+  , element, code, decode, len, replace, sequence
+  , pair, depair, search
+  ) where
 
 import Prelude hiding (sequence)
 
@@ -52,14 +56,33 @@ sequence c n = code $ replicate n c
 -- Utils
 
 
--- FIXME: clean, performance
+
+-- FIXME: clean, fix: map depair [1..500]などで負数が出るところに着目し、depairもしくはsearchを修正する
 depair :: Code -> (Integer, Integer)
-depair 0 = (0, 0)
+depair 1 = (0, 0)
 depair n = (left, right)
   where
-    ans = head $ filter ((>= n) . fst) candi
-    right = fst ans - n
-    left = snd ans - right
+    max = ceiling $ fromIntegral (1 + binLength n) / 2
+    (a, b) = search (2^(max-1)) (2^max) n
+    right = b - n
+    left = a - right
+
+
+binLength :: Integer -> Integer
+binLength = round . logBase 2 . fromIntegral
+
+
+search :: Integer -> Integer  -> Integer -> (Integer, Integer)
+search n1 n2 n
+  | n2 - n1 == 1 = (n2, f n2)
+  | n < mid      = search n1 midI n
+  | n > mid      = search midI n2 n
+  | otherwise    = (midI, mid)
+  where
+    -- FIXME: clean, name
+    midI = div (n1 + n2) 2
+    mid = f midI
+    f n = div ((n+1) * (n+2)) 2
 
 
 candi :: [(Code, Integer)]
