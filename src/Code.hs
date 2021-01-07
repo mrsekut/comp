@@ -56,34 +56,44 @@ sequence c n = code $ replicate n c
 -- Utils
 
 
-
--- FIXME: clean, fix: map depair [1..500]などで負数が出るところに着目し、depairもしくはsearchを修正する
 depair :: Code -> (Integer, Integer)
 depair 1 = (0, 0)
+depair 2 = (0, 1)
 depair n = (left, right)
   where
-    max = ceiling $ fromIntegral (1 + binLength n) / 2
-    (a, b) = search (2^(max-1)) (2^max) n
+    pow = ceiling $ fromIntegral (1 + binLength n) / 2
+    (min, max) = rangeCheck n pow
+    (a, b) = search min max n
     right = b - n
     left = a - right
 
 
+rangeCheck :: Integer -> Integer -> (Integer, Integer)
+rangeCheck n pow
+  | n < leftNum (2^(pow-1)) = (2^(pow-2), 2^(pow-1))
+  | n > leftNum (2^pow)     = (2^pow, 2^(pow+1))
+  | otherwise               = (2^(pow-1), 2^pow)
+
+
 binLength :: Integer -> Integer
-binLength = round . logBase 2 . fromIntegral
+binLength = (+1) . floor . logBase 2 . fromIntegral
 
 
 search :: Integer -> Integer  -> Integer -> (Integer, Integer)
 search n1 n2 n
-  | n2 - n1 == 1 = (n2, f n2)
-  | n < mid      = search n1 midI n
-  | n > mid      = search midI n2 n
-  | otherwise    = (midI, mid)
+  | leftNum n1 == n = (n1, leftNum n1)
+  | leftNum n2 == n = (n2, leftNum n2)
+  | n2 - n1 == 1    = (n2, leftNum n2)
+  | n < mid         = search n1 midI n
+  | n > mid         = search midI n2 n
+  | otherwise       = (midI, mid)
   where
-    -- FIXME: clean, name
     midI = div (n1 + n2) 2
-    mid = f midI
-    f n = div ((n+1) * (n+2)) 2
+    mid = leftNum midI
 
+
+leftNum :: Integral a => a -> a
+leftNum n = div ((n+1) * (n+2)) 2
 
 candi :: [(Code, Integer)]
 candi = [(x, i) | (x,i) <- zip cand [0..]]
