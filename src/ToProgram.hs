@@ -1,26 +1,27 @@
-module ToProgram where
+module ToProgram
+  ( ProgramCode(..)
+  , toProgramCode, toProgram
+  )
+  where
 
 import AST.Program (Program(..), Vars, Cmd(..))
 import qualified Data.Map as M
 import qualified Code as C
-
-
-type Result a = Either [String] a
-
-
+import qualified Util as U
 
 
 {-
 
-Code 213797904982138037454632940231947778583451643946214351540021648522868699116020532367794717279183597514183155623196270804266008911831504391186653218399859236746627965664600576149708185774554408383297605366764401745745512661359368506
+Code 213797904982138037454632940231947778583451643946214351539888667374659624571846317189430034392722181574191018775500344307826886363942159348121221846668501076259189172349201939902055099238535683718239773388149828334592987613507615588
+
  ↓
  ↓ toProgramCode
  ↓
-ProgramCode 2 3 113410085239160792121509200101
-ProgramCode 2 3 <3835,437,72,33,12>
-ProgramCode 2 3 <[6,2,3],[1,6],[5,2],[4,1],[1,1]>
+ProgramCode 2 2 113410085239160792121509200101
+ProgramCode 2 2 <3835,437,72,33,12>
+ProgramCode 2 2 <[6,2,3],[1,6],[5,2],[4,1],[1,1]>
  ↓
- ↓ toProgram, makeCmds
+ ↓ toProgram, makeCmds FIXME:
  ↓
 Program 4 [(If 2 3),(Goto 6),(Dec 2),(Inc 1),(Goto 1)]
 
@@ -31,21 +32,24 @@ type CmdsCode = Integer
 data ProgramCode = ProgramCode InputCode VarsCode CmdsCode deriving (Show)
 
 
--- FIXME: unsafe, Result
 -- lengthが3であるのチェックも兼ねる
-toProgramCode :: C.Code -> Result ProgramCode
+toProgramCode :: C.Code -> Either String ProgramCode
 toProgramCode c = case length d of
   3 -> Right $ ProgramCode (d!!0) (d!!1) (d!!2)
-  _ -> Left ["not Program"]
+  _ -> Left "not Program"
   where d = C.decode c
 
 
-toProgram :: ProgramCode -> Program
-toProgram (ProgramCode k m s) = Program (initializeVars k m) (makeCmds s)
+-- FIXME: Start
+toProgram :: ProgramCode -> C.Code -> Program
+toProgram (ProgramCode k m s) arg = Program (initializeVars k m arg) (Start:makeCmds s)
 
 
-initializeVars :: InputCode -> VarsCode -> Vars
-initializeVars k m = M.fromList ([(v,0) | v <- [0..k+m]])
+initializeVars :: InputCode -> VarsCode -> C.Code -> Vars
+initializeVars k m arg = M.fromList $ as ++ vs
+  where
+    as = U.mapInd (\x i -> (toInteger i, x)) $ C.decode arg
+    vs = if k == m then [] else [(v,0) | v <- [m-k..m]]
 
 
 makeCmds :: CmdsCode -> [Cmd]
