@@ -1,16 +1,8 @@
-module Comp (main, execute) where
+module Comp (comp, execute) where
 import AST.Program (Program(..), Vars, Cmd(..))
 import qualified Data.Map as M
-import qualified Code as C
 import qualified ToProgram as T
 import Data.Maybe (fromJust)
-
-
-main :: IO ()
-main = do
-  let tashizan = 213797904982138037454632940231947778583451643946214351539888667374659624571846317189430034392722181574191018775500344307826886363942159348121221846668501076259189172349201939902055099238535683718239773388149828334592987613507615588
-  let arg = C.code [50, 4]
-  print $ comp tashizan arg
 
 
 -- FIXME: use Faillible
@@ -42,7 +34,7 @@ row (BindV a b, vs) pc = (pc+1, bind a b vs)
 row (Inc a, vs)     pc = (pc+1, M.update inc a vs)
 row (Dec a, vs)     pc = (pc+1, M.update dec a vs)
 row (If n l, vs)    pc = case M.lookup n vs of
-  Just x -> if x>0 then (l, vs) else (pc+1, vs)
+  Just x -> if x > 0 then (l, vs) else (pc+1, vs)
   Nothing -> error "error"
 
 

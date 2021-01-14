@@ -26,7 +26,7 @@ decode c = l : decode r
 
 
 pair :: Integer -> Integer -> Code
-pair x y = sum0toN (x+y)  + x + 1
+pair x y = sum0toN (x+y) + x + 1
 
 
 left, right :: Code -> Integer
@@ -94,6 +94,7 @@ search n1 n2 n
 
 leftNum :: Integral a => a -> a
 leftNum n = div ((n+1) * (n+2)) 2
+
 
 candi :: [(Code, Integer)]
 candi = [(x, i) | (x,i) <- zip cand [0..]]

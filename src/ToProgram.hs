@@ -1,8 +1,4 @@
-module ToProgram
-  ( ProgramCode(..)
-  , toProgramCode, toProgram
-  )
-  where
+module ToProgram (ProgramCode(..), toProgramCode, toProgram) where
 
 import AST.Program (Program(..), Vars, Cmd(..))
 import qualified Data.Map as M
@@ -10,22 +6,6 @@ import qualified Code as C
 import qualified Util as U
 
 
-{-
-
-Code 213797904982138037454632940231947778583451643946214351539888667374659624571846317189430034392722181574191018775500344307826886363942159348121221846668501076259189172349201939902055099238535683718239773388149828334592987613507615588
-
- ↓
- ↓ toProgramCode
- ↓
-ProgramCode 2 2 113410085239160792121509200101
-ProgramCode 2 2 <3835,437,72,33,12>
-ProgramCode 2 2 <[6,2,3],[1,6],[5,2],[4,1],[1,1]>
- ↓
- ↓ toProgram, makeCmds FIXME:
- ↓
-Program 4 [(If 2 3),(Goto 6),(Dec 2),(Inc 1),(Goto 1)]
-
--}
 type InputCode = Integer
 type VarsCode = Integer
 type CmdsCode = Integer
