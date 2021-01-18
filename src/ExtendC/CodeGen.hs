@@ -13,6 +13,7 @@ import ExtendC.AST.Define ( Define(..), Stmt(..), Expr(..)
 
 -- W
 
+
 type W a = RWST () Text State IO a
 newtype State = State { variableCount :: Int }
 
@@ -20,8 +21,10 @@ newtype State = State { variableCount :: Int }
 
 -- Reifiable
 
+
 class Reifiable a where
     reify :: a -> W Text
+
 
 instance Reifiable Define where
     -- reify (Fn f as b) = do
@@ -94,6 +97,7 @@ instance Reifiable Expr where
 
 -- Utils
 
+
 unoS :: UniOpS -> Text
 unoS IncOp = "++"
 unoS DecOp = "--"
@@ -102,6 +106,7 @@ unoS DecOp = "--"
 unoE :: UniOpE -> Text
 unoE Not = "!"
 unoE Neg = "-"
+
 
 bio :: BinOp -> Text
 bio Add = "+"
@@ -118,9 +123,11 @@ bio Neq = "!="
 bio And = "&&"
 bio Or  = "||"
 
+
 braces :: Text -> W Text
 braces body = do
     pure $ T.concat [" {\n", body, "}\n"]
+
 
 gen :: Define -> IO ()
 gen e = do

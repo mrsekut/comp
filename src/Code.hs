@@ -96,13 +96,5 @@ leftNum :: Integral a => a -> a
 leftNum n = div ((n+1) * (n+2)) 2
 
 
-candi :: [(Code, Integer)]
-candi = [(x, i) | (x,i) <- zip cand [0..]]
-
-
-cand :: [Code]
-cand = [sum0toN (k+1) | k <- [0..]]
-
-
 sum0toN :: Integer -> Integer
 sum0toN n = div (n * (n+1)) 2

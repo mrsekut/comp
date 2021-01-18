@@ -6,11 +6,11 @@ type Vars = M.Map Integer Integer
 data Program = Program Vars [Cmd] deriving (Show)
 
 type Line = Integer
-data Cmd = Goto Line
-         | Bind Integer Integer
-         | BindV Integer Integer
-         | Inc Integer
-         | Dec Integer
-         | If Integer Integer
+data Cmd = Goto Line                -- goto La
+         | Bind Integer Integer     -- va = b
+         | BindV Integer Integer    -- va = vb
+         | Inc Integer              -- va++
+         | Dec Integer              -- va--'
+         | If Integer Integer       -- if (va > 0) goto Lb
          | Start
          deriving (Show)

@@ -34,7 +34,7 @@ row (BindV a b, vs) pc = (pc+1, bind a b vs)
 row (Inc a, vs)     pc = (pc+1, M.update inc a vs)
 row (Dec a, vs)     pc = (pc+1, M.update dec a vs)
 row (If n l, vs)    pc = case M.lookup n vs of
-  Just x -> if x > 0 then (l, vs) else (pc+1, vs)
+  Just x  -> if x > 0 then (l, vs) else (pc+1, vs)
   Nothing -> error "error"
 
 
