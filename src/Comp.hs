@@ -5,7 +5,6 @@ import qualified ToProgram as T
 import Data.Maybe (fromJust)
 
 
--- FIXME: use Faillible
 comp :: Integer -> Integer -> Integer
 comp p x = execute $ T.toProgram p' x
   where
@@ -16,7 +15,6 @@ execute :: Program -> Integer
 execute (Program vs cmds) = execute' cmds 1 vs
 
 
--- FIXME: clean
 execute' :: [Cmd] -> Integer -> Vars -> Integer
 execute' [] _ _ = undefined
 execute' cmd pc vs =
@@ -26,7 +24,6 @@ execute' cmd pc vs =
     where (next, nvs) = row (cmd !! fromInteger pc, vs) pc
 
 
--- FIXME: clean
 row :: (Cmd, Vars) -> Integer -> (Integer, Vars)
 row (Goto l, vs)    _  = (l, vs)
 row (Bind v n, vs)  pc = (pc+1, M.insert v n vs)

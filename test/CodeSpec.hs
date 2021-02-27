@@ -5,6 +5,8 @@ import Test.Hspec.QuickCheck
 import qualified Code as P
 import Test.QuickCheck
 
+
+
 spec :: Spec
 spec = do
     describe "reverses decoded code" $ do
@@ -31,7 +33,3 @@ spec = do
 prop_decoded :: Positive P.Code -> Bool
 prop_decoded (Positive x) = (P.code . P.decode) x  == x
 
-
--- QuickCheckで書こう
--- left (pair x y) == x
--- right (pair x y) == y

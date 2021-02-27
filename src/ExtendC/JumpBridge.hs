@@ -76,7 +76,6 @@ getVars (Init es) = map unVar es
 getVars _         = []
 
 
--- FIXME: clean, name, classを使って統一するとか？
 changeVars :: VMap -> Stmt -> EStmt
 changeVars vmap stmt = case stmt of
   Seq stmt        -> Seq $ map (changeVars vmap) stmt
@@ -117,7 +116,6 @@ unVar (Var v) = v
 newtype JumpBridge = JumpBridge { variableIndex :: Int } deriving (Show, Eq)
 
 
--- FIXME: name微妙かもな, 引数名も微妙
 -- 前処理をしたStmt,JumpBridgeを使用し、変換を実施する
 toDefine :: EStmt -> JumpBridge -> Stmt
 toDefine ss jmp = setInits init stms
@@ -159,15 +157,3 @@ makeVariables idx n  = map var [idx+1 .. idx+n]
 updateVariables :: JumpBridge -> [String] -> State JumpBridge ()
 updateVariables jump vs = do
   put $ jump { variableIndex = variableIndex jump + length vs }
-
-
-
-
--- TODO: debug手順ちゃんとまとめかないと時間アクト忘れる
--- TODO: JumpBridge全体的にりふぁくた
--- TODO: add以外の関数をやっていく
--- TODO: genやCコードも含めた一気通貫のテストコードが必要(後にgotoなどの変換をするので)
--- ①引数、内部変数の総書き換え
--- ②JumpBridgeに変換
--- ③変換
--- ④もとに戻す
